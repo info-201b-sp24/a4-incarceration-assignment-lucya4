@@ -1,23 +1,113 @@
 ---
-title: "A3: Incarceration"
+title: "A4 Summary"
 output: html_document
 ---
 
+``` {r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+## read in the data
+data_link <- "https://raw.githubusercontent.com/melaniewalsh/Neat-Datasets/main/us-prison-pop.csv"
+inc_data <- read.csv(data_link)
+
+## smaller dataset with just the information we need - prison population m/f and totals
+## omitted na values to make it easier later
+prison_data <- inc_data %>% select(male_prison_pop, female_prison_pop, total_prison_pop, year, state)
+prison_data <- na.omit(prison_data)
+```
+
 ### Introduction
 
-An introduction of the problem domain and a description of the variable(s) you are choosing to analyze (and why!)
+For this project I decided to analyze the Female and Male Prison populations. Yes this is slightly different than analyzing by race, but understanding differences in populations by sex is equally as important as by race in order to understand the entire social picture and it was a subject that peaked my interest. I began running some simple statistics on them such as the change in Prisoners per year for each population and the average change per year. One thing I noticed initially about the overall male and female prisoner populations is the vast difference in numbers between the two. The male population of prisoners is almost 10x that of the female prisoner population. I wanted to find a way to compare statistics between the two about change in population size so I decided to run the calculations based on percent increase rather than the raw numbers themselves.
+
+This study is important because it allows comparison between the male and female prison populations. It could be useful to monitor how these populations change to watch for abnormalities, coorelations, and differences in behavior of the population as a whole. For example, if there was an event during a certain year that pertained more to one sex (for example a Me Too movement or a draft), analyzing the differences between populations could lead to findings that tell about the social atmosphere of that time. Perhaps there was a sharp increase/decrease in the female prison population after that year which could lead to more research around what could have caused a sharp jump not seen in the male prison population.
 
 ### Summary Information
 
-Write a summary paragraph of findings that includes the 5 values calculated from your summary information R script
+How many Female Prisoners got admitted this year? 
+```{r}
+## run statistics
+## how many female prisoners got admitted this year?
+current_fem_prisoners <- prison_data %>% filter(year == max(year)) %>% pull(female_prison_pop)
+current_fem_prisoners <- sum(current_fem_prisoners)
+last_yr_fem_prisoners <- prison_data %>% filter(year == max(year) - 1) %>% pull(female_prison_pop)
+last_yr_fem_prisoners <- sum(last_yr_fem_prisoners)
+print(current_fem_prisoners - last_yr_fem_prisoners)
+```
+how many male?
+```{r}
+current_male_prisoners <- prison_data %>% filter(year == max(year)) %>% pull(male_prison_pop)
+current_male_prisoners <- sum(current_male_prisoners)
+last_yr_male_prisoners <- prison_data %>% filter(year == max(year) - 1) %>% pull(male_prison_pop)
+last_yr_male_prisoners <- sum(last_yr_male_prisoners)
+print(current_male_prisoners - last_yr_male_prisoners)
+```
 
-These will likely be calculated using your DPLYR skills, answering questions such as: 
+how many female/male prisoners were added each year?
+what % increase/decrease did this represent?
+```{r}
+sum_prison_data <- prison_data %>% group_by(year) %>% summarise(female_prison_pop = sum(female_prison_pop), male_prison_pop = sum(male_prison_pop), total_prison_pop = sum(total_prison_pop))
 
-- What is the average value of my variable across all the counties (in the current year)?
-- Where is my variable the highest / lowest?
-- How much has my variable change over the last N years?
 
-Feel free to calculate and report values that you find relevant. Again, remember that the purpose is to think about how these measure of incarceration vary by race.
+sum_prison_data <- sum_prison_data %>% mutate(new_fem_prisoners = female_prison_pop - lag(female_prison_pop, n = 1, default = 0))
+## run som stats about the new column
+mean_new_fem_prisoners <- mean(sum_prison_data$new_fem_prisoners)
+print(mean_new_fem_prisoners)
+## percent increase column
+sum_prison_data <- sum_prison_data %>% mutate(percent_inc_fem = new_fem_prisoners / female_prison_pop, n = 1, default = 0)
+
+## run stats for male
+sum_prison_data <- sum_prison_data %>% mutate(new_male_prisoners = male_prison_pop - lag(male_prison_pop, n = 1, default = 0))
+## run som stats about the new column
+mean_new_male_prisoners <- mean(sum_prison_data$new_male_prisoners)
+print(mean_new_male_prisoners)
+## percent increase column
+sum_prison_data <- sum_prison_data %>% mutate(percent_inc_male = new_male_prisoners / male_prison_pop, n = 1, default = 0)
+```
+
+what about the total?
+```{r}
+## total stats
+sum_prison_data <- sum_prison_data %>% mutate(new_total_prisoners = total_prison_pop - lag(total_prison_pop, n = 1, default = 0))
+## run som stats about the new column
+mean_new_total_prisoners <- mean(sum_prison_data$new_total_prisoners)
+print(mean_new_total_prisoners)
+## percent increase column
+sum_prison_data <- sum_prison_data %>% mutate(percent_inc_total = new_total_prisoners / total_prison_pop, n = 1, default = 0)
+```
+
+whats the most Female prisoners admitted in one year and what was the year?
+```{r}
+most_fem <- max(sum_prison_data$new_fem_prisoners)
+## most Female Prisoners Admitted
+print(most_fem)
+most_fem_year <- sum_prison_data %>% filter(new_fem_prisoners == max(new_fem_prisoners)) %>% pull(year)
+## the Year
+print(most_fem_year)
+```
+
+whats about for men?
+```{r}
+most_men <- max(sum_prison_data$new_male_prisoners)
+## most Female Prisoners Admitted
+print(most_men)
+most_men_year <- sum_prison_data %>% filter(new_male_prisoners == max(new_male_prisoners)) %>% pull(year)
+## the Year
+print(most_men_year)
+```
+
+What year did the total amount of prisoners decrease the most and what year?
+```{r}
+least_total <- min(sum_prison_data$new_total_prisoners, na.rm = TRUE)
+## most Female Prisoners Admitted
+print(least_total)
+least_total_year <- sum_prison_data %>% filter(new_total_prisoners == min(new_total_prisoners, na.rm = TRUE)) %>% pull(year)
+## the Year
+print(least_total_year)
+```
+
 
 ### The Dataset
 
@@ -32,40 +122,41 @@ What are possible limitations or problems with this data?   (at least 200 words)
 
 ### Trends Over Time Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
-
-The first chart that you will create and include will show the trend over time of your variable/topic. Think carefully about what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
-
-- Show more than one, but fewer than ~10 trends
-  - This may mean showing the same measure for different locations or different racial groups. Think carefully about a meaningful comparison of locations (e.g., the top 10 counties in a state, top 10 states, etc.)
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- You need a legend for your different line colors and a clear legend title
-
-When we say "clear" or "human readable" titles and labels, that means that you should not just display the variable name.
-
-Here's an example of how to run an R script inside an RMarkdown file:
-
-``````{r, echo = FALSE, code = readLines("chart1_example.R")}
+``` {r}
+plot(sum_prison_data$new_fem_prisoners~sum_prison_data$year, main='New Female Prisoners per year', xlab='Year', ylab='Female Prisoners Admitted')
 ```
+This Chart shows the New Female Prisoners admitted per year. I included this chart because it shows how although the amount of prisoners admitted each year can very, it's also incredibly telling about overall trends of the population. In this chart its clear that the number of prisoners admitted was steady across the US through the 70s but was very unstable through the 80s and began to decrease in the early 2000s. This is useful to compare to trends for the male prisoner population and the total. 
+
+``` {r}
+plot(sum_prison_data$new_male_prisoners~sum_prison_data$year, main='New Male Prisoners per year', xlab='Year', ylab='Male Prisoners Admitted')
+```
+
+This chart measures the same trend over time but for the Male Prison population. I decided to keep these charts separate for comparison instead of overlaying them because of the large difference in population size between male and female prison population (an issue that I address later in this report). In order to make the trends of the population overall easy to comapre keeping the charts separate is the best way to ensure the viewers can see that overall the trend remains the same but that Male prisoner populations had an even more sharp incrase and sparatic value through the 80s and a sharper decline from the 2000s and 2010s.
+
+``` {r}
+plot(sum_prison_data$new_total_prisoners~sum_prison_data$year, main='New Total Prisoners per year', xlab='Year', ylab='Total Prisoners Admitted')
+```
+This chart shows a trend closest to the Male Total Prisoners chart and demonstrates why it's important to separate the two populations to run statistics / analyze. The female population trends are completely overrun and impossible to measure in this overall chart. 
+
+I decided to include the legend and overlaying of variables in my next chart instead of this one! Please see that chart for those parameters!
 
 ### Variable Comparison Chart
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+```{r}
 
-The second chart that you will create and include will show how two different (continuous) variables are related to one another. Again, think carefully about what such a comparison means and what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
+## comparative chart using layers in ggplot
 
-- You must have clear x and y axis labels
-- The chart needs a clear title 
-- If you choose to add a color encoding (not required), you need a legend for your different color and a clear legend title
+comparative_graph <- ggplot(prison_data, aes(x = year)) +
+  geom_point(aes(y = percent_inc_male, color = "Percent inc Male")) +
+  geom_point(aes(y = percent_inc_fem, color = "Percent inc Fem")) +
+  scale_color_manual(values = c("Percent inc Fem" = "blue", "Percent inc Male" = "green")) +
+  labs(title="Male vs Female increase in Prisoners by %", x='Year', y='Percent Increase')
+
+print(comparative_graph)
+```
+This chart shows the relationship between the percent increase or decrease in Female Prisoners and Male Prisoners each year. I decided to use layering and different colors for this chart rather than the charts before because for this chart I controlled for varaible size. In my calculations I created a new dataset containing information about the population size for male, female, and total prison populations (across all states) for each year. I then made a new column for each category keeping track of the increase / decrease each year and finally that value over the total population in that category to get a % increase or decrease. IN this cahrt its clear to see that there are much more polarized results for the female population. Many years having a large % decrease or a large % increase. This has to do with the population size being smaller but also shows how much more of a decrease the Female population had vs the Male. It was important to have this graph in my report because it helps demonstrate the difference in trends between the Male and Female populations to an even greater degree now that I have acounted for the population size difference.
 
 ### Map
 
 Include a chart. Make sure to describe why you included the chart, and what patterns emerged
-
-The last chart that you will create and include will show how a variable is distributed geographically. Again, think carefully about what such a comparison means and what you want to communicate to your user (you may have to find relevant trends in the dataset first!). Here are some requirements to help guide your design:
-
-- Your map needs a title
-- Your color scale needs a legend with a clear label
-- Use a map based coordinate system to set the aspect ratio of your map
 
