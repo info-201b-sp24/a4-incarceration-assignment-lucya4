@@ -7,10 +7,11 @@ output: html_document
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(maps)
 
 ## read in the data
 data_link <- "https://raw.githubusercontent.com/melaniewalsh/Neat-Datasets/main/us-prison-pop.csv"
-inc_data <- read.csv(data_link)
+inc_data <- read.csv(data_link, stringsAsFactors = FALSE)
 
 ## smaller dataset with just the information we need - prison population m/f and totals
 ## omitted na values to make it easier later
@@ -22,11 +23,11 @@ prison_data <- na.omit(prison_data)
 
 For this project I decided to analyze the Female and Male Prison populations. Yes this is slightly different than analyzing by race, but understanding differences in populations by sex is equally as important as by race in order to understand the entire social picture and it was a subject that peaked my interest. I began running some simple statistics on them such as the change in Prisoners per year for each population and the average change per year. One thing I noticed initially about the overall male and female prisoner populations is the vast difference in numbers between the two. The male population of prisoners is almost 10x that of the female prisoner population. I wanted to find a way to compare statistics between the two about change in population size so I decided to run the calculations based on percent increase rather than the raw numbers themselves.
 
-This study is important because it allows comparison between the male and female prison populations. It could be useful to monitor how these populations change to watch for abnormalities, coorelations, and differences in behavior of the population as a whole. For example, if there was an event during a certain year that pertained more to one sex (for example a Me Too movement or a draft), analyzing the differences between populations could lead to findings that tell about the social atmosphere of that time. Perhaps there was a sharp increase/decrease in the female prison population after that year which could lead to more research around what could have caused a sharp jump not seen in the male prison population.
+This study is important because it allows comparison between the male and female prison populations. It could be useful to monitor how these populations change to watch for abnormalities, correlations, and differences in behavior of the population as a whole. For example, if there was an event during a certain year that pertained more to one sex (for example a Me Too movement or a draft), analyzing the differences between populations could lead to findings that tell about the social atmosphere of that time. Perhaps there was a sharp increase/decrease in the female prison population after that year which could lead to more research around what could have caused a sharp jump not seen in the male prison population.
 
-### Summary Information
+### Summary Statistics
 
-How many Female Prisoners got admitted this year? 
+How many Female Prisoners got admitted in the most recent year data was collected (2016)? 
 ```{r}
 ## run statistics
 ## how many female prisoners got admitted this year?
@@ -47,18 +48,21 @@ print(current_male_prisoners - last_yr_male_prisoners)
 
 how many female/male prisoners were added each year?
 what % increase/decrease did this represent?
+those values were added in new columns in the dataset
+the mean number of new prisoners added each year is printed for Female and Male populations
 ```{r}
+## set up a data set with each year and total prisoners for each pop
 sum_prison_data <- prison_data %>% group_by(year) %>% summarise(female_prison_pop = sum(female_prison_pop), male_prison_pop = sum(male_prison_pop), total_prison_pop = sum(total_prison_pop))
 
-
+## new columns with new prisoners each year
 sum_prison_data <- sum_prison_data %>% mutate(new_fem_prisoners = female_prison_pop - lag(female_prison_pop, n = 1, default = 0))
-## run som stats about the new column
+## run some stats about the new column
 mean_new_fem_prisoners <- mean(sum_prison_data$new_fem_prisoners)
 print(mean_new_fem_prisoners)
 ## percent increase column
 sum_prison_data <- sum_prison_data %>% mutate(percent_inc_fem = new_fem_prisoners / female_prison_pop, n = 1, default = 0)
 
-## run stats for male
+## new prisoner column for male
 sum_prison_data <- sum_prison_data %>% mutate(new_male_prisoners = male_prison_pop - lag(male_prison_pop, n = 1, default = 0))
 ## run som stats about the new column
 mean_new_male_prisoners <- mean(sum_prison_data$new_male_prisoners)
@@ -112,20 +116,42 @@ print(least_total_year)
 ### The Dataset
 
 Who collected the data?  
-How was the data collected or generated?  
-Why was the data collected?  
-How many observations (rows) are in your data?  
-How many features (columns) are in the data?  
-What, if any, ethical questions or questions of power do you need to consider when working with this data?  
-What are possible limitations or problems with this data?   (at least 200 words)
+Vera Institute of Justice
 
+How was the data collected or generated? 
+Collected from the BJS Census of Jails
+
+Why was the data collected?  
+The data was collected and made public in an effort to help educate about and end over-criminalization and mass incarceration of groups such as people who live in poverty and people of color. The Vera Institute does a lot of projects around issues relating to their cause and helps fund/start up programs designed to help. This data collection was one of their many projects to help educate and raise awareness about their cause and they created a tool on their website where it can be used to show statistics about incarceration by state.
+
+How many observations (rows) are in your data? 
+```{r}
+print(nrow(inc_data))
+```
+
+How many features (columns) are in the data?  
+```{r}
+print(ncol(inc_data))
+```
+
+What, if any, ethical questions or questions of power do you need to consider when working with this data?
+When working with mass data that is reported like this there is always a question of how accurate the data is based on who measured it etc. The counts of population by gender in prison could be off depending on the accuracy of their collection or could be influenced by the motives of the Prison / people involved with the prison. This could be affected by the State reporting it and political motives behind that State. There are also questions of the Vera Institute, it's goals and agenda and where its funding comes from could all affect how this data is measured and what conclusions it supports. There could also be ethical questions surrounding how the racial data was collected. Was it self reported race or on a legal document? Were some people able to opt out of the data collection or omitted and how does that effect the results?
+
+What are possible limitations or problems with this data?   (at least 200 words)
+One of the biggest limitations with this data set is that most columns do not have data for a large percent of the rows. This makes it difficult to analyze between any column because of the amount of missing data. While there is still enough data to run analysis, especially when combining information by state or year, there are large gaps in information. For example the amount of entries per State is not equal. If there were more reports in one state, lets say Texas for example, and less reports in another state like Ohio, it could appear that there are far more Prisoners in Texas than Ohio when in reality the data wasn't collected equally. After analysis, there are states such as Texas and California that have a much higher Prison population that otehr states by a lot -- and it could be useful to measure how many entries were made for these states comapred to the otehrs. The same issue comes when grouping the data by year. Some years have far more entries than others making the data less reliable and harder to work with. There are a lot of NA values as well which need to be omitted to run a lot of basic statistics in R meaning that a lot of the time new data sets need to be created as a subset of the data that exclude NA values and are missing a lot of information. This is a similar problem to the first one only this one is relating to the functionality of R and not just statistics in general. 
 
 ### Trends Over Time Chart
 
 ``` {r}
-plot(sum_prison_data$new_fem_prisoners~sum_prison_data$year, main='New Female Prisoners per year', xlab='Year', ylab='Female Prisoners Admitted')
+ggplot(data = sum_prison_data, aes(x = year)) + 
+  geom_line(aes(y = new_fem_prisoners, color = "Female Prisoners")) +
+  geom_line(aes(y = new_male_prisoners, color = "Male Prisoners")) + 
+  scale_color_manual(values = c("Female Prisoners" = "red", "Male Prisoners" = "blue")) +
+  xlab("Year") + 
+  ylab("New Prisoners per year") + 
+  ggtitle("New Prisoners per Year by Sex")
 ```
-This Chart shows the New Female Prisoners admitted per year. I included this chart because it shows how although the amount of prisoners admitted each year can very, it's also incredibly telling about overall trends of the population. In this chart its clear that the number of prisoners admitted was steady across the US through the 70s but was very unstable through the 80s and began to decrease in the early 2000s. This is useful to compare to trends for the male prisoner population and the total. 
+This Chart shows the New Female/Male Prisoners admitted per year. I included this chart because it shows how much larger and how much more variation the Male Prisoner population has vs the Female Prisoner Population. It also shows how difficult it is to compare trends between 2 populations of vastly different sizes which I combat later in this report. 
 
 ``` {r}
 plot(sum_prison_data$new_male_prisoners~sum_prison_data$year, main='New Male Prisoners per year', xlab='Year', ylab='Male Prisoners Admitted')
@@ -146,17 +172,55 @@ I decided to include the legend and overlaying of variables in my next chart ins
 
 ## comparative chart using layers in ggplot
 
-comparative_graph <- ggplot(prison_data, aes(x = year)) +
-  geom_point(aes(y = percent_inc_male, color = "Percent inc Male")) +
-  geom_point(aes(y = percent_inc_fem, color = "Percent inc Fem")) +
+comparative_graph <- ggplot(sum_prison_data, aes(x = year)) +
+  geom_line(aes(y = percent_inc_male, color = "Percent inc Male")) +
+  geom_line(aes(y = percent_inc_fem, color = "Percent inc Fem")) +
   scale_color_manual(values = c("Percent inc Fem" = "blue", "Percent inc Male" = "green")) +
   labs(title="Male vs Female increase in Prisoners by %", x='Year', y='Percent Increase')
 
 print(comparative_graph)
 ```
-This chart shows the relationship between the percent increase or decrease in Female Prisoners and Male Prisoners each year. I decided to use layering and different colors for this chart rather than the charts before because for this chart I controlled for varaible size. In my calculations I created a new dataset containing information about the population size for male, female, and total prison populations (across all states) for each year. I then made a new column for each category keeping track of the increase / decrease each year and finally that value over the total population in that category to get a % increase or decrease. IN this cahrt its clear to see that there are much more polarized results for the female population. Many years having a large % decrease or a large % increase. This has to do with the population size being smaller but also shows how much more of a decrease the Female population had vs the Male. It was important to have this graph in my report because it helps demonstrate the difference in trends between the Male and Female populations to an even greater degree now that I have acounted for the population size difference.
+
+This chart shows the relationship between the percent increase or decrease in Female Prisoners and Male Prisoners each year. I decided to use legend and different colors for this comparison chart rather than the charts before because for this chart I controlled for variable size. In my calculations I created a new data set containing information about the population size for male, female, and total prison populations (across all states) for each year. I then made a new column for each category keeping track of the increase / decrease each year and finally that value over the total population in that category to get a % increase or decrease. In this chart, on most years, the Female and Male populations increase and decrease at a similar rate. This is interesting as it tells that perhaps there is a similar amount of arrests/ charges proportionally for men and women each year. Initially, I expected there to be a much more drastic % change for the Female population because of its smaller size (for example gaining 10 Female prisoners is a much higher % than 10 male prisoners). This similarity could be a result of a quota or some other variable but is definitely interesting. There are a few years where the % changes are drastically different such as in the early 70s, and 1990. These years could be investigated for factors that may have caused this difference in comaprison to all the other years. It was important to have this graph in my report because it helps demonstrate the difference in trends between the Male and Female populations to an even greater degree now that I have accounted for the population size difference.
 
 ### Map
 
-Include a chart. Make sure to describe why you included the chart, and what patterns emerged
+``` {r}
 
+## setting up a dataset with the state and m/f/t populations
+current_year_data <- prison_data %>% filter(year == max(year)) %>% group_by(state) %>% summarise(female_prison_pop = sum(female_prison_pop), male_prison_pop = sum(male_prison_pop), total_prison_pop = sum(total_prison_pop))
+## join the dataset to state map
+
+## change abbreviations to full state names so it can be joined
+current_year_data$state <- state.name[match(current_year_data$state, state.abb)]
+current_year_data <- current_year_data %>% mutate(state = tolower(state))
+state_shape <- map_data("state") %>% rename(state = region) %>% left_join(current_year_data, by="state")
+
+## map 1: female prisoner population in 2016
+ggplot(state_shape) +
+  geom_polygon(
+    mapping = aes(x = long, y = lat, group = group, fill = female_prison_pop),  # Use column names directly
+    color = "white",  # Specify color (if needed)
+    size = 0.1  # Specify size (if needed)
+  ) +
+  coord_map() +
+  scale_fill_continuous(low = "#132B43", high = "Red") +
+  labs(fill = "Female Prison Population") +
+  theme_void()
+
+
+## map 2: Male prisoner population in 2016
+ggplot(state_shape) +
+  geom_polygon(
+    mapping = aes(x = long, y = lat, group = group, fill = male_prison_pop),  # Use column names directly
+    color = "white",  # Specify color (if needed)
+    size = 0.1  # Specify size (if needed)
+  ) +
+  coord_map() +
+  scale_fill_continuous(low = "#132B43", high = "Red") +
+  labs(fill = "Male Prison Population") +
+  theme_void()
+
+```
+
+These Maps are important to include in the report because they show the difference in distribution of Prison populations across different states by gender. This helps show trends in the overall Prison populations. For example a much higher percent of the Male Prison population is in California than the Female Prison population. There is also slightly lower concentration in the North East for Women than men but the most drastic difference is California as mentioned before. This trend is interesting and could lead to a study about social climate between genders in California and other issues that could be contributing to the vast difference.
