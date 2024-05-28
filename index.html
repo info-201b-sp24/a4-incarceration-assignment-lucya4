@@ -189,24 +189,60 @@ seen in the male prison population.</p>
 </div>
 <div id="summary-information" class="section level3">
 <h3>Summary Information</h3>
-<p>Write a summary paragraph of findings that includes the 5 values calculated from your summary information R script</p>
+<p>The Male Prisoner population size is almost 10 times the size of the Female Prisoner 
+population in the dataset I chose to study. In 2016, in the USA, there were 1820 less female prisoners 
+than the year previous and 40885 less male Prisoners than the year previous. Both populations show
+similar trends proportionally in population size change which is interesting. The mean number 
+of new female prisoners admitted each year is 1642 while the mean for male prisoners is 20340. 
+Because the populations follow eachother trend wise but the male population has such a higher 
+average admittance rate (more than 10x the female population which would have been proportional)
+this means the male population must have a much more sparatic in and out number than the Female 
+population (or there must be another factor contributing to this). The most female prisoners admitted 
+in one year was 15604 and it was in 2005, while the most male prisoners admitted in a year was 
+213665 in 1983. The total amount of prisoners decreased the most in a year by 80329 in 2015. </p>
 <p>These will likely be calculated using your DPLYR skills, answering questions such as: </p>
-<ul>
-<li>What is the average value of my variable across all the counties (in the current year)?</li>
-<li>Where is my variable the highest / lowest?</li>
-<li>How much has my variable change over the last N years?</li>
-</ul>
-<p>Feel free to calculate and report values that you find relevant. Again, remember that the purpose is to think about how these measure of incarceration vary by race.</p>
 </div>
 <div id="the-dataset" class="section level3">
 <h3>The Dataset</h3>
 <p>Who collected the data?<br />
+<p> The Vera Institute of Justice.<p/>
 How was the data collected or generated?<br />
+<p> It was collected from the BJS Census of Jails.<p/>
 Why was the data collected?<br />
+<p> The data was collected and made public in an effort to help educate about and end over-criminalization 
+       and mass incarceration of groups such as people who live in poverty and people of color. 
+       The Vera Institute does a lot of projects around issues relating to their cause 
+       and helps fund/start up programs designed to help. This data collection was one of 
+       their many projects to help educate and raise awareness about their cause and they 
+       created a tool on their website where it can be used to show statistics about 
+       incarceration by state.<p/>
 How many observations (rows) are in your data?<br />
+       <p>153811<p/>
 How many features (columns) are in the data?<br />
+       <p>36<p/>
 What, if any, ethical questions or questions of power do you need to consider when working with this data?<br />
+<p>When working with mass data that is reported like this there is always a question of how accurate the data is 
+       based on who measured it etc. The counts of population by gender in prison could be off depending on the 
+       accuracy of their collection or could be influenced by the motives of the Prison / people involved with the prison. 
+       This could be affected by the State reporting it and political motives behind that State. There are also questions of 
+       the Vera Institute, it's goals and agenda and where its funding comes from could all affect how this data is measured 
+       and what conclusions it supports. There could also be ethical questions surrounding how the racial data was collected. 
+       Was it self reported race or on a legal document? Were some people able to opt out of the data collection or omitted 
+       and how does that effect the results?<p/>
 What are possible limitations or problems with this data? (at least 200 words)</p>
+ <p>One of the biggest limitations with this data set is that most columns do not have data for a large percent of the rows.
+        This makes it difficult to analyze between any column because of the amount of missing data. While there is still 
+        enough data to run analysis, especially when combining information by state or year, there are large gaps in 
+        information. For example the amount of entries per State is not equal. If there were more reports in one state,
+        lets say Texas for example, and less reports in another state like Ohio, it could appear that there are far more
+        Prisoners in Texas than Ohio when in reality the data wasn't collected equally. After analysis, there are states 
+        such as Texas and California that have a much higher Prison population that otehr states by a lot -- and it could be 
+        useful to measure how many entries were made for these states comapred to the otehrs. The same issue comes when grouping 
+        the data by year. Some years have far more entries than others making the data less reliable and harder to work with. 
+        There are a lot of NA values as well which need to be omitted to run a lot of basic statistics in R meaning that a lot 
+        of the time new data sets need to be created as a subset of the data that exclude NA values and are missing a lot of 
+        information. This is a similar problem to the first one only this one is relating to the functionality of R and not just 
+        statistics in general. <p/>
 </div>
 <div id="trends-over-time-chart" class="section level3">
 <h3>Trends Over Time Chart</h3>
